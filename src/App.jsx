@@ -115,7 +115,9 @@ function emptyForm(categories) {
   return {
     id: null,
     studentName: "",
+    classLevel: "",
     groupName: "",
+    teacherName: "",
     topic: "",
     date: new Date().toISOString().slice(0, 10),
     scores,
@@ -146,7 +148,9 @@ function StudentForm({ form, onChange }) {
       <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-500">Student / Group Info</h2>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {field("studentName", "Student name")}
+        {field("classLevel", "Class")}
         {field("groupName", "Group name")}
+        {field("teacherName", "Teacher")}
         {field("topic", "Presentation topic")}
         {field("date", "Date", "date")}
       </div>
@@ -305,41 +309,93 @@ function AssessmentHistory({ assessments, categories, onEdit, onDelete }) {
 // ---------------------------------------------------------------------------
 // PrintReport — visible only in print media (used for "PDF export")
 // ---------------------------------------------------------------------------
-function PrintReport({ form, categories }) {
+function PrintReport({ form, categories, schoolName }) {
   const maxTotal = getMaxTotal(categories);
   const total = getTotal(form.scores, categories);
   const level = getLevel(total, maxTotal);
   return (
-    <div className="p-8">
-      <h1 className="text-xl font-bold">Presentation Assessment</h1>
-      <div className="mt-4 grid grid-cols-2 gap-y-1 text-sm">
-        <span className="font-semibold">Student:</span><span>{form.studentName}</span>
-        <span className="font-semibold">Group:</span><span>{form.groupName}</span>
-        <span className="font-semibold">Topic:</span><span>{form.topic}</span>
-        <span className="font-semibold">Date:</span><span>{form.date}</span>
+    <div className="mx-auto max-w-2xl p-10" style={{ fontFamily: "Inter, sans-serif" }}>
+      {/* School header */}
+      <div className="border-b-2 border-slate-800 pb-4 text-center">
+        <p className="text-lg font-extrabold uppercase tracking-wide text-slate-800">{schoolName}</p>
+        <p className="mt-1 text-base font-semibold text-slate-600">Presentation Assessment Report</p>
       </div>
-      <table className="mt-6 w-full border-collapse text-sm">
+
+      {/* Student info block */}
+      <div className="mt-6 grid grid-cols-2 gap-y-2 text-sm">
+        <span className="font-semibold text-slate-600">Student:</span>
+        <span className="border-b border-dotted border-slate-300 pb-0.5">{form.studentName || "\u00A0"}</span>
+
+        <span className="font-semibold text-slate-600">Class:</span>
+        <span className="border-b border-dotted border-slate-300 pb-0.5">{form.classLevel || "\u00A0"}</span>
+
+        <span className="font-semibold text-slate-600">Group:</span>
+        <span className="border-b border-dotted border-slate-300 pb-0.5">{form.groupName || "\u00A0"}</span>
+
+        <span className="font-semibold text-slate-600">Teacher:</span>
+        <span className="border-b border-dotted border-slate-300 pb-0.5">{form.teacherName || "\u00A0"}</span>
+
+        <span className="font-semibold text-slate-600">Topic:</span>
+        <span className="border-b border-dotted border-slate-300 pb-0.5">{form.topic || "\u00A0"}</span>
+
+        <span className="font-semibold text-slate-600">Date:</span>
+        <span className="border-b border-dotted border-slate-300 pb-0.5">{form.date || "\u00A0"}</span>
+      </div>
+
+      {/* Score table */}
+      <table className="mt-8 w-full border-collapse text-sm">
         <thead>
-          <tr className="border-b border-black text-left">
-            <th className="py-1">Category</th>
-            <th className="py-1 text-right">Score</th>
+          <tr className="border-b-2 border-slate-800 text-left">
+            <th className="py-2">Category</th>
+            <th className="py-2 text-right">Score</th>
           </tr>
         </thead>
         <tbody>
           {categories.map((c) => (
-            <tr key={c.id} className="border-b border-slate-300">
-              <td className="py-1">{c.label}</td>
-              <td className="py-1 text-right">{form.scores[c.id] ?? 0}/{c.max}</td>
+            <tr key={c.id} className="border-b border-slate-200">
+              <td className="py-2">{c.label}</td>
+              <td className="py-2 text-right">{form.scores[c.id] ?? 0}/{c.max}</td>
             </tr>
           ))}
         </tbody>
+        <tfoot>
+          <tr className="border-t-2 border-slate-800">
+            <td className="py-2 font-bold">TOTAL</td>
+            <td className="py-2 text-right font-bold">{total}/{maxTotal}</td>
+          </tr>
+        </tfoot>
       </table>
-      <p className="mt-4 text-base font-bold">Total Score: {total}/{maxTotal} — {level.label}</p>
-      <div className="mt-6 text-sm">
-        <p className="font-semibold">Strengths:</p>
-        <p className="mb-3">{form.strengths || "—"}</p>
-        <p className="font-semibold">Suggestions for improvement:</p>
-        <p>{form.suggestions || "—"}</p>
+
+      <p className="mt-3 text-right text-sm font-semibold text-slate-700">
+        Performance: <span>{level.label}</span>
+      </p>
+
+      {/* Feedback */}
+      <div className="mt-8 space-y-4 text-sm">
+        <div>
+          <p className="mb-1 font-semibold text-slate-700">Strengths</p>
+          <div className="min-h-[2.5rem] rounded-lg border border-slate-200 p-2 text-slate-600">
+            {form.strengths || "\u00A0"}
+          </div>
+        </div>
+        <div>
+          <p className="mb-1 font-semibold text-slate-700">Suggestions for Improvement</p>
+          <div className="min-h-[2.5rem] rounded-lg border border-slate-200 p-2 text-slate-600">
+            {form.suggestions || "\u00A0"}
+          </div>
+        </div>
+      </div>
+
+      {/* Signature */}
+      <div className="mt-12 grid grid-cols-2 gap-8 text-sm">
+        <div>
+          <div className="border-b border-slate-400 pb-8"></div>
+          <p className="mt-1 text-center text-xs text-slate-500">Teacher Signature</p>
+        </div>
+        <div>
+          <div className="border-b border-slate-400 pb-8"></div>
+          <p className="mt-1 text-center text-xs text-slate-500">Date</p>
+        </div>
       </div>
     </div>
   );
@@ -348,7 +404,7 @@ function PrintReport({ form, categories }) {
 // ---------------------------------------------------------------------------
 // CategorySettings — add / rename / delete categories, edit max, icon, color
 // ---------------------------------------------------------------------------
-function CategorySettings({ categories, onChange }) {
+function CategorySettings({ categories, onChange, schoolName, onSchoolNameChange }) {
   const updateCategory = (id, patch) => {
     onChange(
       categories.map((c) => {
@@ -399,6 +455,22 @@ function CategorySettings({ categories, onChange }) {
 
   return (
     <div className="space-y-4">
+      <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500">Report Settings</h2>
+        <p className="mt-1 text-xs text-slate-400">
+          This name appears as the header on the printed / exported report.
+        </p>
+        <label className="mt-3 flex flex-col gap-1">
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">School / Center name</span>
+          <input
+            value={schoolName}
+            onChange={(e) => onSchoolNameChange(e.target.value)}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+            placeholder="e.g. ABC English School"
+          />
+        </label>
+      </div>
+
       <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
         <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500">Scoring Categories</h2>
         <p className="mt-1 text-xs text-slate-400">
@@ -530,6 +602,7 @@ export default function App() {
   const [view, setView] = useState("score"); // "score" | "history" | "settings"
   const [saveNote, setSaveNote] = useState("");
   const [printMode, setPrintMode] = useState(false);
+  const [schoolName, setSchoolName] = useState("Presentation Assessment");
 
   // Load saved categories + assessments on mount (from the browser's localStorage)
   useEffect(() => {
@@ -548,6 +621,12 @@ export default function App() {
     try {
       const raw = localStorage.getItem("yl2-assessments");
       if (raw) setAssessments(JSON.parse(raw));
+    } catch (e) {
+      // no data saved yet — that's fine
+    }
+    try {
+      const rawSchool = localStorage.getItem("yl2-school-name");
+      if (rawSchool) setSchoolName(rawSchool);
     } catch (e) {
       // no data saved yet — that's fine
     }
@@ -580,6 +659,15 @@ export default function App() {
       return { ...f, scores: nextScores };
     });
   }, [categories]);
+
+  // Persist the school/center name whenever it changes.
+  useEffect(() => {
+    try {
+      localStorage.setItem("yl2-school-name", schoolName);
+    } catch (e) {
+      console.error("Could not save school name", e);
+    }
+  }, [schoolName]);
 
   // Show the printable report, trigger the browser print dialog, then
   // return to the normal scoring view once printing is done/cancelled.
@@ -640,7 +728,7 @@ export default function App() {
   if (printMode) {
     return (
       <div className="min-h-screen bg-white" style={{ fontFamily: "Inter, sans-serif" }}>
-        <PrintReport form={form} categories={categories} />
+        <PrintReport form={form} categories={categories} schoolName={schoolName} />
       </div>
     );
   }
@@ -683,7 +771,14 @@ export default function App() {
           </div>
         </header>
 
-        {view === "settings" && <CategorySettings categories={categories} onChange={setCategories} />}
+        {view === "settings" && (
+          <CategorySettings
+            categories={categories}
+            onChange={setCategories}
+            schoolName={schoolName}
+            onSchoolNameChange={setSchoolName}
+          />
+        )}
 
         {view === "history" && (
           <AssessmentHistory assessments={assessments} categories={categories} onEdit={handleEdit} onDelete={handleDelete} />

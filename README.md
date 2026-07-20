@@ -1,4 +1,4 @@
-# YL2 Presentation Scoring
+# Presentation Scoring
 
 ## Run it locally
 
